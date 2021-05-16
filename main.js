@@ -1,51 +1,52 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk')
-const clear = require('clear')
-const title = require('./lib/appTitle')
-const TicketAPI = require('./lib/TicketAPI')
-const inquirer = require('./lib/inquirer')
-const requestApiToken = require('./lib/reqApiToken')
+const chalk = require('chalk');
+const clear = require('clear');
+const title = require('./lib/appTitle');
+const TicketAPI = require('./lib/TicketAPI');
+const inquirer = require('./lib/inquirer');
+const requestApiToken = require('./lib/reqApiToken');
 
 
-// clear console
-clear()
+// clear the console
+clear();
 
-// display title
-title()
-// main execution
+// display the app's title
+title();
+
+// main program execution starts below
 const run = async () => {
     let tokens;
     const tokenIsSet = requestApiToken.checkTokenIsStored();
-    let signedIn = false;
+    let isTokenSet = false;
 
     if (tokenIsSet) {
 
-        console.log(chalk.green(`Authentication token found`))
+        console.log(chalk.green(`API token already set`));
 
         tokens = requestApiToken.getApiToken();
         
         
-        signedIn = true
+        isTokenSet = true
     } else {
         console.log(chalk.red('API token required, Please copy the token from submission email'));
         
     }
-    while(!signedIn) {
-        const response = await inquirer.getAPIToken()
+    while(!isTokenSet) {
+        const response = await inquirer.getAPIToken();
         token_input = response;
         tokens = token_input.getApiToken;
         requestApiToken.setApiToken(tokens);
-        signedIn = true;
+        isTokenSet = true;
         break;
     }
     
 
-    while (signedIn) {
+    while (isTokenSet) {
         const ticketAPI = new TicketAPI(tokens);
 
         console.log('\n')
-        const { option } = await inquirer.mainOptions()
+        const { option } = await inquirer.mainOptions();
 
         
         clear();
@@ -62,12 +63,12 @@ const run = async () => {
                 let current_page = 1;
                 let pages;
                 if (result.length % 25 === 0){
-                    pages = result.length / 25
+                    pages = result.length / 25;
                 } else {
-                    pages = (result.length / 25) + 1
+                    pages = (result.length / 25) + 1;
                 }
                 
-                console.log(chalk.blue(`Viewing Page ${current_page} of ${pages}`));
+                console.log(chalk.yellow(`Viewing Page ${current_page} of ${pages}\n`));
                 console.log((result.slice(0, 25)).join(''));
                 
 
@@ -90,7 +91,7 @@ const run = async () => {
                                 current_page++;
                                 clear();
                                 title();
-                                console.log(chalk.blue(`Viewing Page ${current_page} of ${pages}`));
+                                console.log(chalk.yellow(`Viewing Page ${current_page} of ${pages}\n`));
                                 console.log((result.slice(i, i+25)).join(''));
                                 continue;
                             
@@ -100,7 +101,7 @@ const run = async () => {
                                 
                             
                             default:
-                                console.log(result.slice(0, 25))
+                                console.log(result.slice(0, 25));
                         }
 
                         
@@ -108,13 +109,13 @@ const run = async () => {
                     
                 }
             } catch (error) {
-                console.log(chalk.yellow(error.message))
+                console.log(chalk.yellow(error.message));
             }
             break;
         
         case 'View a Single Ticket':
             
-            const ticketId  = await inquirer.getTicketId()
+            const ticketId  = await inquirer.getTicketId();
 
             try {
                 const single_result = await ticketAPI.getSingleTickets(ticketId.ticketId); 
@@ -132,7 +133,7 @@ const run = async () => {
             
 
         default:
-            console.log(chalk.grey('Option not yet implemented'))
+            console.log(chalk.grey('Option not available'));
         }
     }
 }
